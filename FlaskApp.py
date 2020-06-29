@@ -27,6 +27,74 @@ def connect2ES(ipAddress='localhost', port=9200):
             app.logger.info(f"Could not connect to ES!")
             sys.exit()
     return es
+ 
+@app.route('/modifysettings',  methods=['POST'])
+def modifysettings():
+    ESServer = request.args.get('ESServer') or request.get_json().get('ESServer', '')
+    es = connect2ES(ipAddress=ESServer)
+	  # creating autocomplete analyzer
+    b = {"analysis": {
+                      "analyzer": {
+                                    "advance_search_analyzer": {
+                                                                 "type": "custom",
+                                                                 "char_filter": ["html_strip"],
+                                                                 "tokenizer": "standard",
+                                                                 "filter": ["lowercase", "stop", "asciifolding", "snowball"]
+                                                               },
+                                    "autocomplete": {
+                                                     "type": "custom",
+                                                     "tokenizer": "standard",
+                                                     "filter": ["lowercase", "autocomplete_filter"]
+
+                                    }
+                                  },
+                        "filter": {
+                                   "autocomplete_filter": {
+                                                           "type": "edge_ngram",
+                                                           "min_gram": 1,
+                                                           "max_gram": 20,
+                                                           "token_chars": ["letter", "digit", "whitespace", "punctuation", "symbol"]
+                                                          }
+                        }
+                     }
+        }
+    es.put_settings(index='compositesearch', body=b)
+    # add autocomplete filter to mapping of fields name, description and keywords
+    b = {"properties": {
+                        "description" : {
+                                         "type" : "text",
+                                         "fields" : {
+                                                     "keyword" : {
+                                                                  "type" : "keyword",
+                                                                  "ignore_above" : 256
+                                                                 }
+                                                    },
+                                        "analyzer": "autocomplete"
+                                        },
+                        "name" : {
+                                         "type" : "text",
+                                         "fields" : {
+                                                     "keyword" : {
+                                                                  "type" : "keyword",
+                                                                  "ignore_above" : 256
+                                                                 }
+                                                    },
+                                        "analyzer": "autocomplete"
+                                        },
+                        "keywords" : {
+                                         "type" : "text",
+                                         "fields" : {
+                                                     "keyword" : {
+                                                                  "type" : "keyword",
+                                                                  "ignore_above" : 256
+                                                                 }
+                                                    },
+                                        "analyzer": "autocomplete"
+                                        }
+                       }
+        }
+    es.indices.put_mapping(index='compositesearch', body=b)
+    return jsonify("SETTINGS MODIFICATION SUCCESSFUL")
 
 @app.route('/vectortoelastic',  methods=['POST'])
 def vectoriseCompositesearch():
