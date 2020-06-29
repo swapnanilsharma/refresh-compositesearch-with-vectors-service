@@ -1,8 +1,12 @@
 # refresh-compositesearch-with-vectors-service
 
-### This API is for creating modified mapping/settings of COMPOSITESEARCH index and putting dense-vectors for specific fields into the Elastic Search
+## This API is for creating modified mapping/settings of COMPOSITESEARCH index and putting dense-vectors for specific fields into the Elastic Search
 
-#### ElasticSearch dockerized install: sudo docker run -m 6G -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" --name myelastic docker.elastic.co/elasticsearch/elasticsearch:7.7.0 &
+### ElasticSearch and Kibana install:
+
+ - sudo docker run -m 6G -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" --name myelastic docker.elastic.co/elasticsearch/elasticsearch:7.7.0 &
+ - sudo docker pull docker.elastic.co/kibana/kibana:7.7.1
+ - sudo docker run --link <container_id>:elasticsearch -p 5601:5601 docker.elastic.co/kibana/kibana:7.7.1 &
 
 
 #### Commands to run
